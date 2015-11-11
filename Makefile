@@ -68,7 +68,8 @@ install-man: $(MANPAGE)
 
 clean:
 	rm -rf *.py[co] __pycache__ tests/*.py[co] tests/__pycache__ \
-		dnf-plugin-system-upgrade-*.tar.gz po/*.mo
+		dnf-plugin-system-upgrade-*.tar.gz po/*.mo \
+		docker/rpmbuild/$(PACKAGE)-*
 
 check: po/zh_CN.mo
 	$(PYTHON) -m unittest discover tests
@@ -83,6 +84,30 @@ version-check:
 	git describe --tags $(VERSION)
 	grep '^Version:\s*$(VERSION)' dnf-plugin-system-upgrade.spec
 	grep '^\.TH .* "$(VERSION)"' $(MANPAGE)
+
+SNAPVER = $(shell git describe --long --tags --match="*.*.*" 2>/dev/null || \
+          echo $(VERSION)-0-x0000000)
+SNAPREL = snap$(subst -,.,$(patsubst $(VERSION)-%,%,$(SNAPVER)))
+
+SNAPARCHIVE = $(PACKAGE)-$(SNAPVER).tar.gz
+SNAPSPEC = $(PACKAGE)-$(SNAPVER).spec
+
+%/$(SNAPARCHIVE):
+	git archive --prefix=$(PACKAGE)-$(VERSION)/ --output=$@ HEAD
+
+%/$(SNAPSPEC): $(PACKAGE).spec
+	sed -e 's/^Release:.*$$/Release: $(SNAPREL)%{?dist}/' \
+	    -e 's/^Source0:.*$$/Source0: $(SNAPARCHIVE)/' \
+		$< > $@
+	touch -r $< $@
+
+DOCKER_GENFILES = docker/rpmbuild/$(SNAPARCHIVE) docker/rpmbuild/$(SNAPSPEC)
+
+snapshot-docker-rpmbuild: $(DOCKER_GENFILES) docker/rpmbuild/Dockerfile
+	docker build docker/rpmbuild # TODO: tag as $(SNAPVER)
+
+snapshot-docker-compose: snapshot-docker-rpmbuild docker-compose.yml
+	docker-compose build
 
 .PHONY: build install clean check archive version-check
 .PHONY: install-plugin install-service install-bin install-lang install-man
