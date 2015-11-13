@@ -1,9 +1,7 @@
 rpmbuild:
     build: docker/rpmbuild
-    volumes:
-        - /rpms
 
 testenv:
     build: docker/testenv
-    volumes_from:
+    links:
         - rpmbuild

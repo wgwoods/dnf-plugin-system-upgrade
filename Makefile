@@ -101,10 +101,27 @@ SNAPSPEC = $(PACKAGE)-$(SNAPVER).spec
 		$< > $@
 	touch -r $< $@
 
+# This feels like a dumb way of doing this but I don't know of a smart one
+%/Dockerfile.f21: %/Dockerfile
+	sed -e 's/^FROM fedora$/FROM fedora:21/' $< > $@
+%/Dockerfile.f22: %/Dockerfile
+	sed -e 's/^FROM fedora$/FROM fedora:22/' $< > $@
+%/Dockerfile.f23: %/Dockerfile
+	sed -e 's/^FROM fedora$/FROM fedora:23/' $< > $@
+
+# TODO: we should copy docker stuff info a build/ dir and then build temporary
+# artifacts etc. there so we can clean it all out easily afterward
+
 DOCKER_GENFILES = docker/rpmbuild/$(SNAPARCHIVE) docker/rpmbuild/$(SNAPSPEC)
 
+# I don't think the tagging here is smart but I'll improve it later
 snapshot-docker-rpmbuild: $(DOCKER_GENFILES) docker/rpmbuild/Dockerfile
-	docker build docker/rpmbuild # TODO: tag as $(SNAPVER)
+	docker build -t $(PACKAGE)-rpmbuild:$(SNAPVER) docker/rpmbuild
+	docker run $(PACKAGE)-rpmbuild:$(SNAPVER) tar -C / -c rpms/ | \
+		tar -C docker/testenv -vx
+	docker build -t $(PACKAGE)-testenv docker/testenv
+	@echo "Done! To enter test environment, try:"
+	@echo "  docker run -ti $(PACKAGE)-testenv"
 
 snapshot-docker-compose: snapshot-docker-rpmbuild docker-compose.yml
 	docker-compose build

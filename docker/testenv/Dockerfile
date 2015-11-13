@@ -1,7 +1,8 @@
 FROM fedora
 MAINTAINER https://github.com/rpm-software-management/dnf-plugin-system-upgrade
 
-RUN dnf -y update
-RUN dnf -y install /rpms/*.rpm
+RUN dnf -y install dnf-command\(config-manager\)
 
-ENTRYPOINT ["/usr/bin/dnf", "system-upgrade"]
+COPY ./rpms /rpms
+RUN dnf config-manager testrpms --add-repo file:///rpms
+CMD /bin/bash
