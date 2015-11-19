@@ -117,11 +117,19 @@ DOCKER_GENFILES = docker/rpmbuild/$(SNAPARCHIVE) docker/rpmbuild/$(SNAPSPEC)
 # I don't think the tagging here is smart but I'll improve it later
 snapshot-docker-rpmbuild: $(DOCKER_GENFILES) docker/rpmbuild/Dockerfile
 	docker build -t $(PACKAGE)-rpmbuild:$(SNAPVER) docker/rpmbuild
-	docker run $(PACKAGE)-rpmbuild:$(SNAPVER) tar -C / -c rpms/ | \
-		tar -C docker/testenv -vx
+	-docker rm rpmbuild-$(SNAPVER)
+	docker run --name=rpmbuild-$(SNAPVER) $(PACKAGE)-rpmbuild:$(SNAPVER) true
+
+snapshot-enter-testenv:
 	docker build -t $(PACKAGE)-testenv docker/testenv
-	@echo "Done! To enter test environment, try:"
-	@echo "  docker run -ti $(PACKAGE)-testenv"
+	docker run -ti --volumes-from=rpmbuild-snapshot $(PACKAGE)-testenv bash -i
+
+snapshot-docker-tests: snapshot-docker-rpmbuild
+	docker build -t $(PACKAGE)-testenv docker/testenv
+	docker run --volumes-from=rpmbuild-snapshot $(PACKAGE)-testenv \
+		dnf --assumeyes --nogpgcheck install \
+			$(PACKAGE)-$(VERSION)-$(SNAPREL)$$(rpm -E %{dist})
+
 
 snapshot-docker-compose: snapshot-docker-rpmbuild docker-compose.yml
 	docker-compose build
