@@ -1,7 +1,0 @@
-rpmbuild:
-    build: docker/rpmbuild
-
-testenv:
-    build: docker/testenv
-    links:
-        - rpmbuild
