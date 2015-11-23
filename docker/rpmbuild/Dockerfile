@@ -1,21 +1,25 @@
-# This builds us some new RPMs and stuffs them into the /rpms volume
+# This builds us an image containing a suitable build environment!
+# To build, put the .spec and sources (tarballs etc.) in /src and run rpmbuild.
+# RPMs will get written out to /rpms/<arch>/*.rpm.
+
 FROM fedora
 MAINTAINER https://github.com/rpm-software-management/dnf-plugin-system-upgrade
 
 RUN dnf -y update && dnf -y install \
     @buildsys-build \
-    dnf-command\(builddep\) \
     rpmdevtools \
     createrepo
 
 RUN useradd -Um rpm
 RUN su --login rpm rpmdev-setuptree
-WORKDIR /home/rpm/rpmbuild
+RUN mkdir -p /rpms /src && \
+    chown rpm.rpm /rpms /src && \
+    echo '%_rpmdir /rpms' >> /home/rpm/.rpmmacros && \
+    echo '%_sourcedir /src' >> /home/rpm/.rpmmacros
 
-COPY *.spec /src/
-RUN dnf -y builddep --spec /src/*.spec
+COPY buildrequires.txt /src/
+RUN dnf -y install $(cat /src/buildrequires.txt)
 
-COPY *.tar.gz SOURCES/
-RUN su --login rpm -c 'rpmbuild -bb /src/*.spec' && \
-    mkdir /rpms && mv -v RPMS/*/*.rpm /rpms && createrepo /rpms
 VOLUME /rpms
+USER rpm
+CMD rpmbuild -bb /src/*.spec && createrepo /rpms

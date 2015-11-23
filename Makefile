@@ -85,6 +85,8 @@ version-check:
 	grep '^Version:\s*$(VERSION)' dnf-plugin-system-upgrade.spec
 	grep '^\.TH .* "$(VERSION)"' $(MANPAGE)
 
+# TODO everything below here could go into a separate file...
+
 SNAPVER = $(shell git describe --long --tags --match="*.*.*" 2>/dev/null || \
           echo $(VERSION)-0-x0000000)
 SNAPREL = snap$(subst -,.,$(patsubst $(VERSION)-%,%,$(SNAPVER)))
@@ -101,38 +103,55 @@ SNAPSPEC = $(PACKAGE)-$(SNAPVER).spec
 		$< > $@
 	touch -r $< $@
 
-# This feels like a dumb way of doing this but I don't know of a smart one
-%/Dockerfile.f21: %/Dockerfile
-	sed -e 's/^FROM fedora$/FROM fedora:21/' $< > $@
-%/Dockerfile.f22: %/Dockerfile
-	sed -e 's/^FROM fedora$/FROM fedora:22/' $< > $@
-%/Dockerfile.f23: %/Dockerfile
-	sed -e 's/^FROM fedora$/FROM fedora:23/' $< > $@
+docker/rpmbuild/buildrequires.txt: $(PACKAGE).spec
+	rpmspec -q --buildrequires $< > $@ || { rm -f $@; false; }
 
-# TODO: we should copy docker stuff info a build/ dir and then build temporary
-# artifacts etc. there so we can clean it all out easily afterward
+docker/rpmbuild/Dockerfile.f%: docker/rpmbuild/Dockerfile
+	sed -e 's/^FROM fedora.*/FROM fedora:$*/' $< > $@ || { rm -f $@; false; }
 
-DOCKER_GENFILES = docker/rpmbuild/$(SNAPARCHIVE) docker/rpmbuild/$(SNAPSPEC)
+docker/testenv/Dockerfile.f%: docker/testenv/Dockerfile
+	sed -e 's/^FROM fedora.*/FROM fedora:$*/' $< > $@ || { rm -f $@; false; }
 
-# I don't think the tagging here is smart but I'll improve it later
-snapshot-docker-rpmbuild: $(DOCKER_GENFILES) docker/rpmbuild/Dockerfile
-	docker build -t $(PACKAGE)-rpmbuild:$(SNAPVER) docker/rpmbuild
-	-docker rm rpmbuild-$(SNAPVER)
-	docker run --name=rpmbuild-$(SNAPVER) $(PACKAGE)-rpmbuild:$(SNAPVER) true
+SOURCE_RELEASEVER ?= 22
+TARGET_RELEASEVER ?= 23
 
-snapshot-enter-testenv:
-	docker build -t $(PACKAGE)-testenv docker/testenv
-	docker run -ti --volumes-from=rpmbuild-snapshot $(PACKAGE)-testenv bash -i
+RPMBUILD_GENFILES = docker/rpmbuild/$(SNAPARCHIVE) \
+                    docker/rpmbuild/$(SNAPSPEC) \
+                    docker/rpmbuild/buildrequires.txt \
+                    docker/rpmbuild/Dockerfile.f$(SOURCE_RELEASEVER)
 
-snapshot-docker-tests: snapshot-docker-rpmbuild
-	docker build -t $(PACKAGE)-testenv docker/testenv
-	docker run --volumes-from=rpmbuild-snapshot $(PACKAGE)-testenv \
-		dnf --assumeyes --nogpgcheck install \
-			$(PACKAGE)-$(VERSION)-$(SNAPREL)$$(rpm -E %{dist})
+TESTENV_GENFILES = docker/testenv/Dockerfile.f$(SOURCE_RELEASEVER)
 
+RPMBUILD_IMAGE = $(PACKAGE)/rpmbuild:$(SNAPVER)
+RPMBUILD_CONTAINER = rpmbuild-$(SNAPVER)
+TESTENV_IMAGE = $(PACKAGE)/testenv:$(SOURCE_RELEASEVER)
+TESTENV_CONTAINER = testenv-$(SOURCE_RELEASEVER)-$(SNAPVER)
 
-snapshot-docker-compose: snapshot-docker-rpmbuild docker-compose.yml
-	docker-compose build
+snapshot-docker-rpmbuild: $(RPMBUILD_GENFILES)
+	# Make the rpmbuild image
+	docker build \
+		-f docker/rpmbuild/Dockerfile.f$(SOURCE_RELEASEVER) \
+		-t $(RPMBUILD_IMAGE) \
+		docker/rpmbuild
+	# Build RPMs from our spec etc.
+	-docker rm $(RPMBUILD_CONTAINER)
+	docker run --name $(RPMBUILD_CONTAINER) \
+		--volume $(CURDIR)/docker/rpmbuild:/src:ro,z \
+		$(RPMBUILD_IMAGE)
+
+docker-testenv: $(TESTENV_GENFILES)
+	docker build \
+		-f docker/testenv/Dockerfile.f$(SOURCE_RELEASEVER) \
+		-t $(TESTENV_IMAGE) \
+		docker/testenv
+
+RPM_NAME = $(PACKAGE)-$(VERSION)-$(SNAPREL).fc$(SOURCE_RELEASEVER)
+
+snapshot-docker-runtest: snapshot-docker-rpmbuild docker-testenv
+	docker run --rm --name $(TESTENV_CONTAINER) \
+		--volumes-from $(RPMBUILD_CONTAINER) \
+		--volume $(CURDIR)/docker/testenv:/testenv:z \
+		$(TESTENV_IMAGE) /testenv/runtest.sh $(RPM_NAME) $(TARGET_RELEASEVER)
 
 .PHONY: build install clean check archive version-check
 .PHONY: install-plugin install-service install-bin install-lang install-man
