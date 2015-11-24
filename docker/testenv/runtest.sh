@@ -1,6 +1,7 @@
 #!/bin/bash
 
-RESULTFILE=/testenv/RESULT
+RESULTDIR=/results
+RESULTFILE=$RESULTDIR/RESULT
 
 runcmd() {
     echo ">>> $@"
@@ -8,20 +9,23 @@ runcmd() {
 }
 
 fail() {
-    echo "FAIL: $*" > $RESULTFILE
+    echo "FAIL: $*" | tee $RESULTFILE
     copy_logs
     exit 1
 }
 
 copy_logs() {
-    cp /var/log/dnf.log /testenv/dnf.log
+    cp -a /var/log/dnf.log $RESULTDIR/
     # FIXME: how does the journal even work in a container anyway
-    #journalctl -b > /testenv/upgrade.log
+    #journalctl -b > $RESULTDIR/upgrade.log
 }
 
 # Parse commandline variables
 RPM_NAME="$1"
 TARGET_RELEASEVER="$2"
+
+runcmd find /rpms -name "*.rpm" | grep -q "$RPM_NAME" || \
+    fail "$RPM_NAME not found in container"
 
 # Install the plugin
 runcmd dnf -y --nogpgcheck install "$RPM_NAME" || \
@@ -39,11 +43,11 @@ runcmd dnf -y system-upgrade reboot --no-reboot || \
 source /system-update/.dnf-system-upgrade || \
     fail "flag file missing or malformed"
 
-# Run the upgrade (like the service does)
+# Run the upgrade (like the service does, but without rebooting)
 runcmd dnf --releasever=${RELEASEVER} system-upgrade upgrade --no-reboot || \
     fail "upgrade failed"
 
 # Exit successfully!
-echo "PASS" > $RESULTFILE
+echo "PASS" | tee $RESULTFILE
 copy_logs
 exit 0

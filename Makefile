@@ -69,7 +69,7 @@ install-man: $(MANPAGE)
 clean:
 	rm -rf *.py[co] __pycache__ tests/*.py[co] tests/__pycache__ \
 		dnf-plugin-system-upgrade-*.tar.gz po/*.mo \
-		docker/rpmbuild/$(PACKAGE)-*
+		docker/rpmbuild/build-* docker/testenv/test-*
 
 check: po/zh_CN.mo
 	$(PYTHON) -m unittest discover tests
@@ -94,14 +94,36 @@ SNAPREL = snap$(subst -,.,$(patsubst $(VERSION)-%,%,$(SNAPVER)))
 SNAPARCHIVE = $(PACKAGE)-$(SNAPVER).tar.gz
 SNAPSPEC = $(PACKAGE)-$(SNAPVER).spec
 
-%/$(SNAPARCHIVE):
+SOURCE_RELEASEVER ?= 22
+TARGET_RELEASEVER ?= 23
+
+TESTENV_GENFILES = docker/testenv/Dockerfile.f$(SOURCE_RELEASEVER)
+
+RPMBUILD_GENFILES = docker/rpmbuild/Dockerfile.f$(SOURCE_RELEASEVER) \
+                    docker/rpmbuild/buildrequires.txt
+
+SNAP_BUILDDIR = docker/rpmbuild/build-$(SNAPVER)
+SNAP_TESTDIR = docker/testenv/test-$(SNAPVER)
+
+RPM_GENFILES = $(SNAP_BUILDDIR)/$(SNAPARCHIVE) \
+               $(SNAP_BUILDDIR)/$(SNAPSPEC)
+
+RPMBUILD_IMAGE = $(PACKAGE)/rpmbuild:$(SOURCE_RELEASEVER)
+RPMBUILD_CONTAINER = rpmbuild-$(SNAPVER)
+TESTENV_IMAGE = $(PACKAGE)/testenv:$(SOURCE_RELEASEVER)
+
+SNAP_RPM_NAME = $(PACKAGE)-$(VERSION)-$(SNAPREL).fc$(SOURCE_RELEASEVER)
+
+$(SNAP_BUILDDIR) $(SNAP_TESTDIR):
+	mkdir -p $@
+
+$(SNAP_BUILDDIR)/$(SNAPARCHIVE):
 	git archive --prefix=$(PACKAGE)-$(VERSION)/ --output=$@ HEAD
 
-%/$(SNAPSPEC): $(PACKAGE).spec
+$(SNAP_BUILDDIR)/$(SNAPSPEC): $(PACKAGE).spec
 	sed -e 's/^Release:.*$$/Release: $(SNAPREL)%{?dist}/' \
 	    -e 's/^Source0:.*$$/Source0: $(SNAPARCHIVE)/' \
 		$< > $@
-	touch -r $< $@
 
 docker/rpmbuild/buildrequires.txt: $(PACKAGE).spec
 	rpmspec -q --buildrequires $< > $@ || { rm -f $@; false; }
@@ -112,46 +134,31 @@ docker/rpmbuild/Dockerfile.f%: docker/rpmbuild/Dockerfile
 docker/testenv/Dockerfile.f%: docker/testenv/Dockerfile
 	sed -e 's/^FROM fedora.*/FROM fedora:$*/' $< > $@ || { rm -f $@; false; }
 
-SOURCE_RELEASEVER ?= 22
-TARGET_RELEASEVER ?= 23
-
-RPMBUILD_GENFILES = docker/rpmbuild/$(SNAPARCHIVE) \
-                    docker/rpmbuild/$(SNAPSPEC) \
-                    docker/rpmbuild/buildrequires.txt \
-                    docker/rpmbuild/Dockerfile.f$(SOURCE_RELEASEVER)
-
-TESTENV_GENFILES = docker/testenv/Dockerfile.f$(SOURCE_RELEASEVER)
-
-RPMBUILD_IMAGE = $(PACKAGE)/rpmbuild:$(SNAPVER)
-RPMBUILD_CONTAINER = rpmbuild-$(SNAPVER)
-TESTENV_IMAGE = $(PACKAGE)/testenv:$(SOURCE_RELEASEVER)
-TESTENV_CONTAINER = testenv-$(SOURCE_RELEASEVER)-$(SNAPVER)
-
-snapshot-docker-rpmbuild: $(RPMBUILD_GENFILES)
-	# Make the rpmbuild image
+docker-rpmbuild-image: $(DOCKER_RPMBUILD_GENFILES)
 	docker build \
 		-f docker/rpmbuild/Dockerfile.f$(SOURCE_RELEASEVER) \
 		-t $(RPMBUILD_IMAGE) \
 		docker/rpmbuild
-	# Build RPMs from our spec etc.
-	-docker rm $(RPMBUILD_CONTAINER)
-	docker run --name $(RPMBUILD_CONTAINER) \
-		--volume $(CURDIR)/docker/rpmbuild:/src:ro,z \
-		$(RPMBUILD_IMAGE)
 
-docker-testenv: $(TESTENV_GENFILES)
+docker-testenv-image: $(DOCKER_TESTENV_GENFILES)
 	docker build \
 		-f docker/testenv/Dockerfile.f$(SOURCE_RELEASEVER) \
 		-t $(TESTENV_IMAGE) \
 		docker/testenv
 
-RPM_NAME = $(PACKAGE)-$(VERSION)-$(SNAPREL).fc$(SOURCE_RELEASEVER)
+docker-snapshot-rpmbuild: docker-rpmbuild-image $(SNAP_BUILDDIR) $(RPM_GENFILES)
+	docker ps -a | grep -qw $(RPMBUILD_CONTAINER) || \
+	docker run --name $(RPMBUILD_CONTAINER) \
+		--volume $$(pwd)/$(SNAP_BUILDDIR):/src:ro,z \
+		$(RPMBUILD_IMAGE)
 
-snapshot-docker-runtest: snapshot-docker-rpmbuild docker-testenv
-	docker run --rm --name $(TESTENV_CONTAINER) \
+docker-snapshot-runtest: docker-snapshot-rpmbuild docker-testenv-image $(SNAP_TESTDIR)
+	docker run --rm \
 		--volumes-from $(RPMBUILD_CONTAINER) \
-		--volume $(CURDIR)/docker/testenv:/testenv:z \
-		$(TESTENV_IMAGE) /testenv/runtest.sh $(RPM_NAME) $(TARGET_RELEASEVER)
+		--volume $$(pwd)/docker/testenv:/testenv:ro,z \
+		--volume $$(pwd)/$(SNAP_TESTDIR):/results:z \
+		$(TESTENV_IMAGE) \
+		/testenv/runtest.sh $(SNAP_RPM_NAME) $(TARGET_RELEASEVER)
 
 .PHONY: build install clean check archive version-check
 .PHONY: install-plugin install-service install-bin install-lang install-man
