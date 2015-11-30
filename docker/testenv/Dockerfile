@@ -4,5 +4,5 @@
 FROM fedora
 MAINTAINER https://github.com/rpm-software-management/dnf-plugin-system-upgrade
 
-RUN dnf -y install kernel dnf-command\(config-manager\)
+RUN dnf -y install kernel dnf-plugins-core
 RUN dnf config-manager testrpms --add-repo file:///rpms

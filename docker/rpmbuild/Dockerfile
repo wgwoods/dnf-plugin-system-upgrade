@@ -17,8 +17,16 @@ RUN mkdir -p /rpms /src && \
     echo '%_rpmdir /rpms' >> /home/rpm/.rpmmacros && \
     echo '%_sourcedir /src' >> /home/rpm/.rpmmacros
 
-COPY buildrequires.txt /src/
-RUN dnf -y install $(cat /src/buildrequires.txt)
+RUN dnf -y install gettext \
+    pkgconfig \
+    python-dnf \
+    python-mock \
+    python2-devel \
+    python3-devel \
+    python3-dnf \
+    systemd \
+    systemd-python \
+    systemd-python3
 
 VOLUME /rpms
 USER rpm

@@ -87,32 +87,32 @@ version-check:
 
 # TODO everything below here could go into a separate file...
 
+SOURCE_RELEASEVER ?= 22
+TARGET_RELEASEVER ?= 23
+
 SNAPVER = $(shell git describe --long --tags --match="*.*.*" 2>/dev/null || \
           echo $(VERSION)-0-x0000000)
 SNAPREL = snap$(subst -,.,$(patsubst $(VERSION)-%,%,$(SNAPVER)))
 
+SNAP_RPM_EVR = $(VERSION)-$(SNAPREL).fc$(SOURCE_RELEASEVER)
+
+TESTENV_DOCKERFILE = docker/testenv/Dockerfile.f$(SOURCE_RELEASEVER)
+RPMBUILD_DOCKERFILE = docker/rpmbuild/Dockerfile.f$(SOURCE_RELEASEVER) \
+
+RPMBUILD_IMAGE = $(PACKAGE)/rpmbuild:$(SOURCE_RELEASEVER)
+TESTENV_IMAGE = $(PACKAGE)/testenv:$(SOURCE_RELEASEVER)
+RPMBUILD_CONTAINER = rpmbuild-$(SNAP_RPM_EVR)
+
+SNAP_BUILDDIR = docker/rpmbuild/build-$(SNAP_RPM_EVR)
+SNAP_TESTDIR = docker/testenv/test-$(SNAP_RPM_EVR)
+
 SNAPARCHIVE = $(PACKAGE)-$(SNAPVER).tar.gz
 SNAPSPEC = $(PACKAGE)-$(SNAPVER).spec
 
-SOURCE_RELEASEVER ?= 22
-TARGET_RELEASEVER ?= 23
-
-TESTENV_GENFILES = docker/testenv/Dockerfile.f$(SOURCE_RELEASEVER)
-
-RPMBUILD_GENFILES = docker/rpmbuild/Dockerfile.f$(SOURCE_RELEASEVER) \
-                    docker/rpmbuild/buildrequires.txt
-
-SNAP_BUILDDIR = docker/rpmbuild/build-$(SNAPVER)
-SNAP_TESTDIR = docker/testenv/test-$(SNAPVER)
-
-RPM_GENFILES = $(SNAP_BUILDDIR)/$(SNAPARCHIVE) \
-               $(SNAP_BUILDDIR)/$(SNAPSPEC)
-
-RPMBUILD_IMAGE = $(PACKAGE)/rpmbuild:$(SOURCE_RELEASEVER)
-RPMBUILD_CONTAINER = rpmbuild-$(SNAPVER)
-TESTENV_IMAGE = $(PACKAGE)/testenv:$(SOURCE_RELEASEVER)
-
-SNAP_RPM_NAME = $(PACKAGE)-$(VERSION)-$(SNAPREL).fc$(SOURCE_RELEASEVER)
+SNAP_RPM_NAME = $(PACKAGE)-$(SNAP_RPM_EVR)
+SNAP_RPM_GENFILES = $(SNAP_BUILDDIR) \
+                    $(SNAP_BUILDDIR)/$(SNAPARCHIVE) \
+                    $(SNAP_BUILDDIR)/$(SNAPSPEC)
 
 $(SNAP_BUILDDIR) $(SNAP_TESTDIR):
 	mkdir -p $@
@@ -125,32 +125,23 @@ $(SNAP_BUILDDIR)/$(SNAPSPEC): $(PACKAGE).spec
 	    -e 's/^Source0:.*$$/Source0: $(SNAPARCHIVE)/' \
 		$< > $@
 
-docker/rpmbuild/buildrequires.txt: $(PACKAGE).spec
-	rpmspec -q --buildrequires $< > $@ || { rm -f $@; false; }
-
 docker/rpmbuild/Dockerfile.f%: docker/rpmbuild/Dockerfile
 	sed -e 's/^FROM fedora.*/FROM fedora:$*/' $< > $@ || { rm -f $@; false; }
 
 docker/testenv/Dockerfile.f%: docker/testenv/Dockerfile
 	sed -e 's/^FROM fedora.*/FROM fedora:$*/' $< > $@ || { rm -f $@; false; }
 
-docker-rpmbuild-image: $(DOCKER_RPMBUILD_GENFILES)
-	docker build \
-		-f docker/rpmbuild/Dockerfile.f$(SOURCE_RELEASEVER) \
-		-t $(RPMBUILD_IMAGE) \
-		docker/rpmbuild
+docker-rpmbuild-image: $(RPMBUILD_DOCKERFILE)
+	docker build -f $(RPMBUILD_DOCKERFILE) -t $(RPMBUILD_IMAGE) docker/rpmbuild
 
-docker-testenv-image: $(DOCKER_TESTENV_GENFILES)
-	docker build \
-		-f docker/testenv/Dockerfile.f$(SOURCE_RELEASEVER) \
-		-t $(TESTENV_IMAGE) \
-		docker/testenv
+docker-testenv-image: $(TESTENV_DOCKERFILE)
+	docker build -f $(TESTENV_DOCKERFILE) -t $(TESTENV_IMAGE) docker/testenv
 
-docker-snapshot-rpmbuild: docker-rpmbuild-image $(SNAP_BUILDDIR) $(RPM_GENFILES)
+docker-snapshot-rpmbuild: docker-rpmbuild-image $(SNAP_RPM_GENFILES)
 	docker ps -a | grep -qw $(RPMBUILD_CONTAINER) || \
 	docker run --name $(RPMBUILD_CONTAINER) \
 		--volume $$(pwd)/$(SNAP_BUILDDIR):/src:ro,z \
-		$(RPMBUILD_IMAGE)
+		$(RPMBUILD_IMAGE) || { docker rm $(RPMBUILD_CONTAINER); false; }
 
 docker-snapshot-runtest: docker-snapshot-rpmbuild docker-testenv-image $(SNAP_TESTDIR)
 	docker run --rm \
