@@ -56,7 +56,31 @@ shell; add `rd.break` to the boot args, then:
 
  Exit the shell and your system should start normally.
 
+## Reporting bugs
+
+Problems can be reported through
+* github [issues] — problems with the plugin itself and feature requests: [new issue],
+
+or through
+* the Fedora [bug tracker] — upgrade problems and
+integration with the rest of the distribution: [new bug].
+
+Please include `/var/log/dnf.log` and the output of
+`dnf system-upgrade log -1` (if applicable) in your bug reports.
+
+Problems with dependency solving during download are best reported to
+the maintainers of the package(s) with the dependency problems.
+
+Similarly, problems encountered on your system after the upgrade
+completes should be reported to the maintainers of the affected
+components. In other words: if (for example) KDE stops working, it's
+best if you report that to the KDE maintainers.
+
 [DNF]: https://github.com/rpm-software-management/dnf
 [fedup]: https://github.com/rhinstaller/fedup
 [systemd]: https://github.com/systemd/systemd
 [Offline Updates]: http://www.freedesktop.org/wiki/Software/systemd/SystemUpdates/
+[issues]: https://github.com/rpm-software-management/dnf-plugin-system-upgrade/issues
+[new issue]: https://github.com/rpm-software-management/dnf-plugin-system-upgrade/issues/new
+[bug tracker]: https://bugzilla.redhat.com/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=POST&bug_status=MODIFIED&bug_status=ON_DEV&bug_status=ON_QA&bug_status=VERIFIED&bug_status=RELEASE_PENDING&component=dnf-plugin-system-upgrade&list_id=4068794&product=Fedora&query_format=advanced
+[new bug]: https://bugzilla.redhat.com/enter_bug.cgi?product=Fedora&component=dnf-plugin-system-upgrade

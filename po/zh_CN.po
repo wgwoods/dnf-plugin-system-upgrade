@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-23 15:51-0400\n"
+"POT-Creation-Date: 2015-11-11 16:38-0500\n"
 "PO-Revision-Date: 2015-10-23 02:43-0400\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (China)\n"
@@ -27,7 +27,7 @@ msgstr "'--clean-metadata' 已移除。请使用 'dnf clean metadata --releaseve
 msgid "'--expire-cache' removed. Use 'dnf system-upgrade download --refresh'"
 msgstr "'--expire-cache' 已移除。请使用 'dnf system-upgrade download --refresh'"
 
-#: system_upgrade.py:260
+#: system_upgrade.py:265
 msgid "-- no logs were found --"
 msgstr ""
 
@@ -45,11 +45,11 @@ msgid ""
 "Can't redirect DNF logs with --debuglog. Use DNF debug options instead."
 msgstr ""
 
-#: system_upgrade.py:274
+#: system_upgrade.py:279
 msgid "Cannot find logs with this index."
 msgstr ""
 
-#: system_upgrade.py:573
+#: system_upgrade.py:580
 msgid "Cleaning up downloaded data..."
 msgstr "正在清理已下载的数据…"
 
@@ -59,7 +59,7 @@ msgstr "正在清理已下载的数据…"
 msgid "Download complete! Use 'dnf %s reboot' to start the upgrade."
 msgstr "下载完成！使用 'dnf %s reboot' 来开始升级。"
 
-#: system_upgrade.py:604
+#: system_upgrade.py:611
 msgid "Download finished."
 msgstr ""
 
@@ -71,15 +71,15 @@ msgstr "--releasever 需要大于当前系统版本。"
 msgid "No new kernel packages were found."
 msgstr "没有找到新的内核软件包。"
 
-#: system_upgrade.py:365
+#: system_upgrade.py:370
 msgid "OPTIONS"
 msgstr "选项"
 
-#: system_upgrade.py:362
+#: system_upgrade.py:367
 msgid "Prepare system for upgrade to a new release"
 msgstr "为升级至新发布版本准备系统"
 
-#: system_upgrade.py:515
+#: system_upgrade.py:521
 msgid "Rebooting to perform upgrade."
 msgstr ""
 
@@ -97,11 +97,11 @@ msgstr ""
 msgid "Sorry, you need to use 'download --releasever' instead of '--network'"
 msgstr ""
 
-#: system_upgrade.py:541 system_upgrade.py:547
+#: system_upgrade.py:548 system_upgrade.py:554
 msgid "Starting system upgrade. This will take a while."
 msgstr "正在开始系统升级。这需要一些时间。"
 
-#: system_upgrade.py:250
+#: system_upgrade.py:255
 msgid "The following boots appear to contain upgrade logs:"
 msgstr ""
 
@@ -109,45 +109,45 @@ msgstr ""
 msgid "This plugin requires DNF 1.1.0 or later."
 msgstr ""
 
-#: system_upgrade.py:608 system_upgrade.py:609
+#: system_upgrade.py:615 system_upgrade.py:616
 msgid "Upgrade complete! Cleaning up and rebooting..."
 msgstr "升级完成。正在清理并重启…"
 
-#: system_upgrade.py:314 system_upgrade.py:365
+#: system_upgrade.py:319 system_upgrade.py:370
 msgid "VERSION"
 msgstr "版本"
 
-#: system_upgrade.py:342
+#: system_upgrade.py:347
 msgid "action to perform"
 msgstr "将执行的操作"
 
-#: system_upgrade.py:496
+#: system_upgrade.py:502
 msgid "another upgrade tool is running. exiting quietly."
 msgstr "另一个升级工具正在运行。默默退出。"
 
 #. basic download options
-#: system_upgrade.py:313
+#: system_upgrade.py:318
 msgid "download options"
 msgstr "下载选项"
 
-#: system_upgrade.py:322
+#: system_upgrade.py:327
 msgid "keep installed packages if the new release's version is older"
 msgstr ""
 
 #. options for the log verb
-#: system_upgrade.py:344
+#: system_upgrade.py:349
 msgid "log options"
 msgstr ""
 
-#: system_upgrade.py:315
+#: system_upgrade.py:320
 msgid "release version (required)"
 msgstr "发布版本（必需）"
 
-#: system_upgrade.py:317
+#: system_upgrade.py:322
 msgid "save downloaded data to this location"
 msgstr "保存下载的数据至此位置"
 
-#: system_upgrade.py:485
+#: system_upgrade.py:491
 msgid "system is not ready for upgrade"
 msgstr "系统并未准备好升级"
 
@@ -156,12 +156,16 @@ msgstr "系统并未准备好升级"
 msgid "the color of the sky"
 msgstr "天空的颜色"
 
-#: system_upgrade.py:487
+#: system_upgrade.py:493
 msgid "upgrade is already scheduled"
 msgstr "升级已经放入计划了"
 
 #. Translators: do not change "reboot" here
-#: system_upgrade.py:494
+#: system_upgrade.py:500
 #, python-format
 msgid "use '%s reboot' to begin the upgrade"
 msgstr "使用 '%s reboot' 来开始升级"
+
+#: system_upgrade.py:351
+msgid "which logs to show (-1 is last, etc)"
+msgstr ""

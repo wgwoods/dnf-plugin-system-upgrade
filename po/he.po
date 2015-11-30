@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-23 15:51-0400\n"
+"POT-Creation-Date: 2015-11-11 16:38-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: Hebrew\n"
@@ -31,7 +31,7 @@ msgstr ""
 msgid "'--expire-cache' removed. Use 'dnf system-upgrade download --refresh'"
 msgstr ""
 
-#: system_upgrade.py:260
+#: system_upgrade.py:265
 msgid "-- no logs were found --"
 msgstr ""
 
@@ -49,11 +49,11 @@ msgid ""
 "Can't redirect DNF logs with --debuglog. Use DNF debug options instead."
 msgstr ""
 
-#: system_upgrade.py:274
+#: system_upgrade.py:279
 msgid "Cannot find logs with this index."
 msgstr ""
 
-#: system_upgrade.py:573
+#: system_upgrade.py:580
 msgid "Cleaning up downloaded data..."
 msgstr ""
 
@@ -63,7 +63,7 @@ msgstr ""
 msgid "Download complete! Use 'dnf %s reboot' to start the upgrade."
 msgstr ""
 
-#: system_upgrade.py:604
+#: system_upgrade.py:611
 msgid "Download finished."
 msgstr ""
 
@@ -75,15 +75,15 @@ msgstr ""
 msgid "No new kernel packages were found."
 msgstr ""
 
-#: system_upgrade.py:365
+#: system_upgrade.py:370
 msgid "OPTIONS"
 msgstr ""
 
-#: system_upgrade.py:362
+#: system_upgrade.py:367
 msgid "Prepare system for upgrade to a new release"
 msgstr ""
 
-#: system_upgrade.py:515
+#: system_upgrade.py:521
 msgid "Rebooting to perform upgrade."
 msgstr ""
 
@@ -101,11 +101,11 @@ msgstr ""
 msgid "Sorry, you need to use 'download --releasever' instead of '--network'"
 msgstr ""
 
-#: system_upgrade.py:541 system_upgrade.py:547
+#: system_upgrade.py:548 system_upgrade.py:554
 msgid "Starting system upgrade. This will take a while."
 msgstr ""
 
-#: system_upgrade.py:250
+#: system_upgrade.py:255
 msgid "The following boots appear to contain upgrade logs:"
 msgstr ""
 
@@ -113,45 +113,45 @@ msgstr ""
 msgid "This plugin requires DNF 1.1.0 or later."
 msgstr ""
 
-#: system_upgrade.py:608 system_upgrade.py:609
+#: system_upgrade.py:615 system_upgrade.py:616
 msgid "Upgrade complete! Cleaning up and rebooting..."
 msgstr ""
 
-#: system_upgrade.py:314 system_upgrade.py:365
+#: system_upgrade.py:319 system_upgrade.py:370
 msgid "VERSION"
 msgstr ""
 
-#: system_upgrade.py:342
+#: system_upgrade.py:347
 msgid "action to perform"
 msgstr ""
 
-#: system_upgrade.py:496
+#: system_upgrade.py:502
 msgid "another upgrade tool is running. exiting quietly."
 msgstr ""
 
 #. basic download options
-#: system_upgrade.py:313
+#: system_upgrade.py:318
 msgid "download options"
 msgstr ""
 
-#: system_upgrade.py:322
+#: system_upgrade.py:327
 msgid "keep installed packages if the new release's version is older"
 msgstr ""
 
 #. options for the log verb
-#: system_upgrade.py:344
+#: system_upgrade.py:349
 msgid "log options"
 msgstr ""
 
-#: system_upgrade.py:315
+#: system_upgrade.py:320
 msgid "release version (required)"
 msgstr ""
 
-#: system_upgrade.py:317
+#: system_upgrade.py:322
 msgid "save downloaded data to this location"
 msgstr ""
 
-#: system_upgrade.py:485
+#: system_upgrade.py:491
 msgid "system is not ready for upgrade"
 msgstr ""
 
@@ -160,12 +160,16 @@ msgstr ""
 msgid "the color of the sky"
 msgstr ""
 
-#: system_upgrade.py:487
+#: system_upgrade.py:493
 msgid "upgrade is already scheduled"
 msgstr ""
 
 #. Translators: do not change "reboot" here
-#: system_upgrade.py:494
+#: system_upgrade.py:500
 #, python-format
 msgid "use '%s reboot' to begin the upgrade"
+msgstr ""
+
+#: system_upgrade.py:351
+msgid "which logs to show (-1 is last, etc)"
 msgstr ""

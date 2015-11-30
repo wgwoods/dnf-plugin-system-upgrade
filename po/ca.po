@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-23 15:51-0400\n"
-"PO-Revision-Date: 2015-09-23 04:26-0400\n"
+"POT-Creation-Date: 2015-11-11 16:38-0500\n"
+"PO-Revision-Date: 2015-11-03 02:47-0500\n"
 "Last-Translator: Robert Antoni Buj Gelonch <rbuj@fedoraproject.org>\n"
 "Language-Team: Catalan\n"
 "MIME-Version: 1.0\n"
@@ -17,7 +17,7 @@ msgstr ""
 #: system_upgrade.py:69
 #, python-format
 msgid "'%s' is not used anymore. Ignoring."
-msgstr ""
+msgstr "'%s' ja no s'utilitza més i s'ignora."
 
 #: system_upgrade.py:76
 msgid "'--clean-metadata' removed. Use 'dnf clean metadata --releasever=VER'"
@@ -31,9 +31,9 @@ msgstr ""
 "'--expire-cache' es va suprimir. Utilitzeu 'dnf system-upgrade download "
 "--refresh'"
 
-#: system_upgrade.py:260
+#: system_upgrade.py:265
 msgid "-- no logs were found --"
-msgstr ""
+msgstr "-- no s'ha trobat cap registre --"
 
 #: system_upgrade.py:121
 msgid "--datadir: File exists"
@@ -42,18 +42,20 @@ msgstr "--datadir: Existeix el fitxer"
 #: system_upgrade.py:90
 #, python-format
 msgid "Can't do '%s' and '%s' at the same time."
-msgstr ""
+msgstr "No es pot fer '%s' i '%s' alhora."
 
 #: system_upgrade.py:82
 msgid ""
 "Can't redirect DNF logs with --debuglog. Use DNF debug options instead."
 msgstr ""
+"No es poden redirigir els registres del DNF amb --debuglog. En lloc seu, "
+"utilitzeu les opcions de depuració."
 
-#: system_upgrade.py:274
+#: system_upgrade.py:279
 msgid "Cannot find logs with this index."
-msgstr ""
+msgstr "No s'ha pogut trobar cap registre amb aquest índex."
 
-#: system_upgrade.py:573
+#: system_upgrade.py:580
 msgid "Cleaning up downloaded data..."
 msgstr "Neteja de les dades baixades..."
 
@@ -63,11 +65,11 @@ msgstr "Neteja de les dades baixades..."
 msgid "Download complete! Use 'dnf %s reboot' to start the upgrade."
 msgstr ""
 "La baixada s'ha completat! Utilitzeu 'dnf %s reboot' per iniciar "
-"l'actualització."
+"l'actualització de la versió."
 
-#: system_upgrade.py:604
+#: system_upgrade.py:611
 msgid "Download finished."
-msgstr ""
+msgstr "S'ha finalitzat la baixada."
 
 #: system_upgrade.py:65
 msgid "Need a --releasever greater than the current system version."
@@ -77,98 +79,110 @@ msgstr "Es necessita un --releasever superior a la versió actual del sistema."
 msgid "No new kernel packages were found."
 msgstr "No s'han trobat nous paquets del nucli del sistema."
 
-#: system_upgrade.py:365
+#: system_upgrade.py:370
 msgid "OPTIONS"
 msgstr "OPCIONS"
 
-#: system_upgrade.py:362
+#: system_upgrade.py:367
 msgid "Prepare system for upgrade to a new release"
-msgstr "Prepara el sistema per actualitzar-se a un nou llançament"
+msgstr "Prepara el sistema per actualitzar la versió a un nou llançament"
 
-#: system_upgrade.py:515
+#: system_upgrade.py:521
 msgid "Rebooting to perform upgrade."
-msgstr ""
+msgstr "Es reinicia per realitzar l'actualització de la versió."
 
 #: system_upgrade.py:84
 #, python-format
 msgid "Sorry, dnf doesn't support '%(option)s'"
-msgstr ""
+msgstr "Ho sentim, dnf no admet '%(option)s'"
 
 #: system_upgrade.py:71
 #, python-format
 msgid "Sorry, dnf system-upgrade doesn't support '%(option)s'"
-msgstr ""
+msgstr "Ho sentim, dnf system-upgrade no admet '%(option)s'"
 
 #: system_upgrade.py:92
 msgid "Sorry, you need to use 'download --releasever' instead of '--network'"
 msgstr ""
+"Ho sentim, heu d'utilitzar 'download --releasever' en lloc de '--network'"
 
-#: system_upgrade.py:541 system_upgrade.py:547
+#: system_upgrade.py:548 system_upgrade.py:554
 msgid "Starting system upgrade. This will take a while."
-msgstr "S'inicia l'actualització del sistema. Això pot trigar una estona."
+msgstr ""
+"S'inicia l'actualització de la versió del sistema. Això pot trigar una "
+"estona."
 
-#: system_upgrade.py:250
+#: system_upgrade.py:255
 msgid "The following boots appear to contain upgrade logs:"
 msgstr ""
+"Les següents arrencades semblen que continguin registres d'actualització de "
+"versió:"
 
 #: system_upgrade.py:126
 msgid "This plugin requires DNF 1.1.0 or later."
-msgstr ""
+msgstr "Aquest connector requereix la versió 1.1.0 o posterior del DNF."
 
-#: system_upgrade.py:608 system_upgrade.py:609
+#: system_upgrade.py:615 system_upgrade.py:616
 msgid "Upgrade complete! Cleaning up and rebooting..."
-msgstr "S'ha completat l'actualització. Es neteja i es reinicia..."
+msgstr ""
+"S'ha completat l'actualització de la versió. Es neteja i es reinicia..."
 
-#: system_upgrade.py:314 system_upgrade.py:365
+#: system_upgrade.py:319 system_upgrade.py:370
 msgid "VERSION"
 msgstr "VERSIÓ"
 
-#: system_upgrade.py:342
+#: system_upgrade.py:347
 msgid "action to perform"
-msgstr "l'acció a realitzar"
+msgstr "acció a realitzar"
 
-#: system_upgrade.py:496
+#: system_upgrade.py:502
 msgid "another upgrade tool is running. exiting quietly."
 msgstr ""
-"ja s'està executant una altra eina d'actualització. Sortida silenciosa."
+"ja s'està executant una altra eina d'actualització de la versió, se surt de "
+"forma silenciosa."
 
 #. basic download options
-#: system_upgrade.py:313
+#: system_upgrade.py:318
 msgid "download options"
 msgstr "opcions de baixada"
 
-#: system_upgrade.py:322
+#: system_upgrade.py:327
 msgid "keep installed packages if the new release's version is older"
 msgstr ""
+"manté els paquets instal·lats si la versió del nou llançament és més antiga"
 
 #. options for the log verb
-#: system_upgrade.py:344
+#: system_upgrade.py:349
 msgid "log options"
-msgstr ""
+msgstr "opcions del registre"
 
-#: system_upgrade.py:315
+#: system_upgrade.py:320
 msgid "release version (required)"
 msgstr "versió del llançament (necessari)"
 
-#: system_upgrade.py:317
+#: system_upgrade.py:322
 msgid "save downloaded data to this location"
-msgstr "desa les dades baixades en aquesta localització"
+msgstr "desa les dades baixades en aquesta ubicació"
 
-#: system_upgrade.py:485
+#: system_upgrade.py:491
 msgid "system is not ready for upgrade"
-msgstr "el sistema no està a punt per a l'actualització"
+msgstr "el sistema no està a punt per a l'actualització de la versió"
 
 #. Translators: This string is only used in unit tests.
 #: system_upgrade.py:40
 msgid "the color of the sky"
 msgstr "el color del cel"
 
-#: system_upgrade.py:487
+#: system_upgrade.py:493
 msgid "upgrade is already scheduled"
-msgstr "l'actualització ja està programada"
+msgstr "l'actualització de la versió ja està programada"
 
 #. Translators: do not change "reboot" here
-#: system_upgrade.py:494
+#: system_upgrade.py:500
 #, python-format
 msgid "use '%s reboot' to begin the upgrade"
-msgstr "utilitzeu '%s reboot' per començar l'actualització"
+msgstr "utilitzeu '%s reboot' per començar l'actualització de la versió"
+
+#: system_upgrade.py:351
+msgid "which logs to show (-1 is last, etc)"
+msgstr ""

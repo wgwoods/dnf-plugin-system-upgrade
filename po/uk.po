@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-23 15:51-0400\n"
-"PO-Revision-Date: 2015-10-24 03:01-0400\n"
+"POT-Creation-Date: 2015-11-11 16:38-0500\n"
+"PO-Revision-Date: 2015-11-14 02:39-0500\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian\n"
 "MIME-Version: 1.0\n"
@@ -31,7 +31,7 @@ msgstr ""
 "«--expire-cache» вилучено. Скористайтеся «dnf system-upgrade download "
 "--refresh»"
 
-#: system_upgrade.py:260
+#: system_upgrade.py:265
 msgid "-- no logs were found --"
 msgstr "-- журналів не знайдено --"
 
@@ -51,11 +51,11 @@ msgstr ""
 "Не вдалося переспрямувати виведення журналу DNF за допомогою --debuglog. "
 "Скористайтеся краще параметрами діагностики DNF."
 
-#: system_upgrade.py:274
+#: system_upgrade.py:279
 msgid "Cannot find logs with this index."
 msgstr "Не вдалося знайти журнал із цим покажчиком."
 
-#: system_upgrade.py:573
+#: system_upgrade.py:580
 msgid "Cleaning up downloaded data..."
 msgstr "Вилучаємо зайві отримані дані…"
 
@@ -67,7 +67,7 @@ msgstr ""
 "Отримання даних завершено! Скористайтеся командою «dnf %s reboot» для "
 "запуску оновлення."
 
-#: system_upgrade.py:604
+#: system_upgrade.py:611
 msgid "Download finished."
 msgstr "Отримання даних завершено."
 
@@ -81,15 +81,15 @@ msgstr ""
 msgid "No new kernel packages were found."
 msgstr "Нових пакунків ядра не виявлено."
 
-#: system_upgrade.py:365
+#: system_upgrade.py:370
 msgid "OPTIONS"
 msgstr "ПАРАМЕТРИ"
 
-#: system_upgrade.py:362
+#: system_upgrade.py:367
 msgid "Prepare system for upgrade to a new release"
 msgstr "Приготувати систему до оновлення до нового випуску"
 
-#: system_upgrade.py:515
+#: system_upgrade.py:521
 msgid "Rebooting to perform upgrade."
 msgstr "Перезавантажуємо систему для завершення оновлення."
 
@@ -108,11 +108,11 @@ msgid "Sorry, you need to use 'download --releasever' instead of '--network'"
 msgstr ""
 "Вибачте, слід використовувати «download --releasever», а не «--network»"
 
-#: system_upgrade.py:541 system_upgrade.py:547
+#: system_upgrade.py:548 system_upgrade.py:554
 msgid "Starting system upgrade. This will take a while."
 msgstr "Починаємо оновлення системи. Будь ласка, зачекайте."
 
-#: system_upgrade.py:250
+#: system_upgrade.py:255
 msgid "The following boots appear to contain upgrade logs:"
 msgstr "Здається, журнали оновлення містяться у записах таких завантажень:"
 
@@ -120,47 +120,47 @@ msgstr "Здається, журнали оновлення містяться �
 msgid "This plugin requires DNF 1.1.0 or later."
 msgstr "Для роботи цього додатка потрібна DNF 1.1.0 або новіша версія."
 
-#: system_upgrade.py:608 system_upgrade.py:609
+#: system_upgrade.py:615 system_upgrade.py:616
 msgid "Upgrade complete! Cleaning up and rebooting..."
 msgstr "Оновлення завершено! Вилучаємо зайві дані і перезавантажуємо системи…"
 
-#: system_upgrade.py:314 system_upgrade.py:365
+#: system_upgrade.py:319 system_upgrade.py:370
 msgid "VERSION"
 msgstr "ВЕРСІЯ"
 
-#: system_upgrade.py:342
+#: system_upgrade.py:347
 msgid "action to perform"
 msgstr "дія, яку слід виконати"
 
-#: system_upgrade.py:496
+#: system_upgrade.py:502
 msgid "another upgrade tool is running. exiting quietly."
 msgstr ""
 "працює інший інструмент із оновлення системи, завершуємо роботу без "
 "додаткових повідомлень."
 
 #. basic download options
-#: system_upgrade.py:313
+#: system_upgrade.py:318
 msgid "download options"
 msgstr "параметри отримання даних"
 
-#: system_upgrade.py:322
+#: system_upgrade.py:327
 msgid "keep installed packages if the new release's version is older"
 msgstr "зберігати встановлені пакунки, якщо версія нового випуску є старішою"
 
 #. options for the log verb
-#: system_upgrade.py:344
+#: system_upgrade.py:349
 msgid "log options"
 msgstr "параметри ведення журналу"
 
-#: system_upgrade.py:315
+#: system_upgrade.py:320
 msgid "release version (required)"
 msgstr "версія випуску (обов’язково)"
 
-#: system_upgrade.py:317
+#: system_upgrade.py:322
 msgid "save downloaded data to this location"
 msgstr "зберегти отримані дані до вказаного місця"
 
-#: system_upgrade.py:485
+#: system_upgrade.py:491
 msgid "system is not ready for upgrade"
 msgstr "система не готова до оновлення"
 
@@ -169,12 +169,16 @@ msgstr "система не готова до оновлення"
 msgid "the color of the sky"
 msgstr "колір неба"
 
-#: system_upgrade.py:487
+#: system_upgrade.py:493
 msgid "upgrade is already scheduled"
 msgstr "оновлення вже заплановано"
 
 #. Translators: do not change "reboot" here
-#: system_upgrade.py:494
+#: system_upgrade.py:500
 #, python-format
 msgid "use '%s reboot' to begin the upgrade"
 msgstr "скористайтеся командою «%s reboot», щоб розпочати оновлення"
+
+#: system_upgrade.py:351
+msgid "which logs to show (-1 is last, etc)"
+msgstr "який журнал показувати (-1 — останній тощо)"

@@ -9,6 +9,7 @@ Documentation=http://www.freedesktop.org/wiki/Software/systemd/SystemUpdates
 EnvironmentFile=/system-update/.dnf-system-upgrade
 ExecStart=/usr/bin/dnf --releasever=${RELEASEVER} system-upgrade upgrade
 StandardOutput=journal+console
+ExecStopPost=/usr/bin/rm -fv /system-update
 FailureAction=reboot
 
 [Install]

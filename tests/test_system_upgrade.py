@@ -78,16 +78,17 @@ class PlymouthTestCase(unittest.TestCase):
         call.assert_called_once_with((PLYMOUTH, "change-mode", "--updates"))
 
 import os, tempfile, shutil, gettext
-@unittest.skipUnless(os.path.exists("po/en_GB.mo"), "make po/en_GB.mo first")
+TESTLANG = "zh_CN"
+TESTLANG_MO = "po/%s.mo" % TESTLANG
+@unittest.skipUnless(os.path.exists(TESTLANG_MO), "make %s first" % TESTLANG_MO)
 class I18NTestCaseBase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.localedir = tempfile.mkdtemp(prefix='i18ntest')
-        cls.msgdir = os.path.join(cls.localedir, "en_GB/LC_MESSAGES")
+        cls.msgdir = os.path.join(cls.localedir, TESTLANG+"/LC_MESSAGES")
         cls.msgfile = system_upgrade.TEXTDOMAIN + ".mo"
         os.makedirs(cls.msgdir)
-        shutil.copy2("po/en_GB.mo",
-                     os.path.join(cls.msgdir, cls.msgfile))
+        shutil.copy2(TESTLANG_MO, os.path.join(cls.msgdir, cls.msgfile))
 
     @classmethod
     def tearDownClass(cls):
@@ -95,18 +96,18 @@ class I18NTestCaseBase(unittest.TestCase):
 
     def setUp(self):
         self.t = gettext.translation(system_upgrade.TEXTDOMAIN, self.localedir,
-                                languages=["en_GB"], fallback=True)
+                                languages=[TESTLANG], fallback=True)
         self.gettext = self.t.gettext
 
 class I18NTestCase(I18NTestCaseBase):
     def test_selftest(self):
         self.assertIn(self.msgfile, os.listdir(self.msgdir))
-        self.assertIn("en_GB", os.listdir(self.localedir))
+        self.assertIn(TESTLANG, os.listdir(self.localedir))
         t = gettext.translation(system_upgrade.TEXTDOMAIN, self.localedir,
-                                languages=["en_GB"], fallback=False)
+                                languages=[TESTLANG], fallback=False)
         info = t.info()
         self.assertIn("language", info)
-        self.assertEqual(info["language"], "en-GB")
+        self.assertEqual(info["language"], TESTLANG.replace("_","-"))
 
     def test_fallback(self):
         msg = "THIS STRING DOES NOT EXIST"
@@ -126,18 +127,18 @@ class ArgparseTestCase(unittest.TestCase):
         with mock.patch('system_upgrade.PluginArgumentParser.print_help') as ph:
             with self.assertRaises(CliError) as cm:
                 self.cmd.parse_args(args)
-            self.assertIn(message, str(cm.exception))
+            self.assertIn(message, cm.exception.__str__())
             ph.assert_called_once_with()
 
     def assert_warning(self, args):
         with mock.patch('system_upgrade.logger.warning') as warning:
             self.cmd.parse_args(args)
-            warning.assert_called_once()
+            self.assertTrue(warning.called)
 
     def assert_error(self, args, message):
         with self.assertRaises(CliError) as cm:
             self.cmd.parse_args(args)
-        self.assertIn(message, str(cm.exception))
+        self.assertIn(message, cm.exception.__str__())
 
     def test_actions(self):
         for action in system_upgrade.ACTIONS:
@@ -328,6 +329,11 @@ class CleanCommandTestCase(CommandTestCaseBase):
         self.assertEqual(self.command.state.upgrade_status, None)
 
 class RebootCheckCommandTestCase(CommandTestCaseBase):
+    def setUp(self):
+        super(RebootCheckCommandTestCase, self).setUp()
+        self.MAGIC_SYMLINK = self.statedir + '/symlink'
+        self.SYSTEMD_FLAG_FILE = self.statedir + '/systemd.flag.file'
+
     def test_configure_reboot(self):
         self.cli.demands.root_user = None
         self.command.configure_reboot([])
@@ -358,6 +364,41 @@ class RebootCheckCommandTestCase(CommandTestCaseBase):
     def test_check_reboot_dnfver_bad(self):
         with self.assertRaises(CliError):
             self.check_reboot(status='complete', lexists=False, dnfverok=False)
+
+    def test_run_prepare(self):
+        self.command.state.datadir = '/lol/wut'
+        with patch('system_upgrade.SYSTEMD_FLAG_FILE', self.SYSTEMD_FLAG_FILE):
+            with patch('system_upgrade.MAGIC_SYMLINK', self.MAGIC_SYMLINK):
+                self.command.run_prepare([])
+        self.assertEqual(os.readlink(self.MAGIC_SYMLINK),
+                         self.command.state.datadir)
+        self.assertEqual(self.command.state.upgrade_status, 'ready')
+        releasever = self.command.state.target_releasever
+        with open(self.SYSTEMD_FLAG_FILE) as flag_file:
+            self.assertIn('RELEASEVER=%s\n' % releasever, flag_file.read())
+
+    @patch('system_upgrade.SystemUpgradeCommand.run_prepare')
+    @patch('system_upgrade.SystemUpgradeCommand.log_status')
+    @patch('system_upgrade.reboot')
+    def test_run_reboot(self, reboot, log_status, run_prepare):
+        self.command.opts = mock.MagicMock()
+        self.command.opts.reboot = True
+        self.command.run_reboot([])
+        run_prepare.assert_called_once_with([])
+        self.assertEqual(system_upgrade.REBOOT_REQUESTED_ID,
+                         log_status.call_args[0][1])
+        self.assertTrue(reboot.called)
+
+    @patch('system_upgrade.SystemUpgradeCommand.run_prepare')
+    @patch('system_upgrade.SystemUpgradeCommand.log_status')
+    @patch('system_upgrade.reboot')
+    def test_reboot_prepare_only(self, reboot, log_status, run_prepare):
+        self.command.opts = mock.MagicMock()
+        self.command.opts.reboot = False
+        self.command.run_reboot([])
+        run_prepare.assert_called_once_with([])
+        self.assertFalse(log_status.called)
+        self.assertFalse(reboot.called)
 
 class DownloadCommandTestCase(CommandTestCase):
     def test_configure_download(self):

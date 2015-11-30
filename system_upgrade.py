@@ -32,10 +32,19 @@ import dnf
 import dnf.cli
 from dnf.cli import CliError
 
-import gettext
+try:
+    from dnf.i18n import translation
+except ImportError:
+    # adapted from dnf-1.1.4's dnf.i18n.translation()
+    def translation(name):
+        def ucd_wrapper(fnc):
+            return lambda *w: dnf.i18n.ucd(fnc(*w))
+        t = dnf.pycomp.gettext.translation(name, fallback=True)
+        return (ucd_wrapper(f) for f in dnf.pycomp.gettext_setup(t))
+
 TEXTDOMAIN = 'dnf-plugin-system-upgrade' # NOTE: must match Makefile
-t = gettext.translation(TEXTDOMAIN, fallback=True)
-_ = t.gettext
+_, P_ = translation(TEXTDOMAIN)
+
 # Translators: This string is only used in unit tests.
 _("the color of the sky")
 
@@ -174,6 +183,7 @@ class State(object):
     distro_sync = _prop("distro_sync")
     allow_erasing = _prop("allow_erasing")
     best = _prop("best")
+    exclude = _prop("exclude")
 
 # --- Plymouth output helpers -------------------------------------------------
 
@@ -332,7 +342,10 @@ def make_parser(prog):
     # options for the log verb
     g2 = p.add_argument_group(_("log options"))
     g2.add_argument('number', type=int, nargs='?',
-                    help='which logs to show (-1 is last, etc)')
+                    help=_('which logs to show (-1 is last, etc)'))
+    # hidden option for `reboot` testing
+    p.add_argument('--no-reboot', dest='reboot', default=True,
+                   action='store_false', help=argparse.SUPPRESS)
     return p
 
 # --- The actual Plugin and Command objects! ----------------------------------
@@ -447,6 +460,7 @@ class SystemUpgradeCommand(dnf.cli.Command):
         self.opts.distro_sync = self.state.distro_sync
         self.cli.demands.allow_erasing = self.state.allow_erasing
         self.base.conf.best = self.state.best
+        self.base.conf.exclude = self.state.exclude
         self.base.repos.all().pkgdir = self.opts.datadir
         # don't try to get new metadata, 'cuz we're offline
         self.cli.demands.cacheonly = True
@@ -490,15 +504,21 @@ class SystemUpgradeCommand(dnf.cli.Command):
     def run_help(self, extcmds):
         self.parser.print_help()
 
-    def run_reboot(self, extcmds):
+    def run_prepare(self, extcmds):
         # make the magic symlink
         os.symlink(self.state.datadir, MAGIC_SYMLINK)
         # write releasever into the flag file so it can be read by systemd
         with open(SYSTEMD_FLAG_FILE, 'w') as flagfile:
             flagfile.write("RELEASEVER=%s\n" % self.state.target_releasever)
         # set upgrade_status so that the upgrade can run
-        with self.state:
-            self.state.upgrade_status = 'ready'
+        with self.state as state:
+            state.upgrade_status = 'ready'
+
+    def run_reboot(self, extcmds):
+        self.run_prepare([])
+
+        if not self.opts.reboot:
+            return
 
         self.log_status(_("Rebooting to perform upgrade."),
                         REBOOT_REQUESTED_ID)
@@ -518,13 +538,14 @@ class SystemUpgradeCommand(dnf.cli.Command):
             state.download_status = 'downloading'
             state.target_releasever = self.base.conf.releasever
             state.datadir = self.opts.datadir
+            state.exclude = self.base.conf.exclude
 
     def run_upgrade(self, extcmds):
         # Delete symlink ASAP to avoid reboot loops
         dnf.yum.misc.unlink_f(MAGIC_SYMLINK)
         # change the upgrade status (so we can detect crashed upgrades later)
-        with self.state:
-            self.state.upgrade_status = 'incomplete'
+        with self.state as state:
+            state.upgrade_status = 'incomplete'
 
         self.log_status(_("Starting system upgrade. This will take a while."),
                         UPGRADE_STARTED_ID)
@@ -564,9 +585,9 @@ class SystemUpgradeCommand(dnf.cli.Command):
         if self.state.datadir:
             logger.info(_("Cleaning up downloaded data..."))
             clear_dir(self.state.datadir)
-        with self.state:
-            self.state.download_status = None
-            self.state.upgrade_status = None
+        with self.state as state:
+            state.download_status = None
+            state.upgrade_status = None
 
     def run_log(self, extcmds):
         assert extcmds[0] == 'log'
@@ -601,4 +622,5 @@ class SystemUpgradeCommand(dnf.cli.Command):
         self.log_status(_("Upgrade complete! Cleaning up and rebooting..."),
                         UPGRADE_FINISHED_ID)
         self.run_clean([])
-        reboot()
+        if self.opts.reboot:
+            reboot()
