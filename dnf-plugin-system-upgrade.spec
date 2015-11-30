@@ -1,5 +1,5 @@
 Name:       dnf-plugin-system-upgrade
-Version:    0.5.0
+Version:    0.5.1
 Release:    1%{?dist}
 Summary:    System Upgrade plugin for DNF
 Group:      System Environment/Base
@@ -105,6 +105,10 @@ fi
 %{python_sitelib}/dnf-plugins/system_upgrade.py*
 
 %changelog
+* Mon Nov 30 2015 Will Woods <wwoods@redhat.com> 0.5.1-1
+- Fix crash at startup with zh_CN and other utf8 locales (#1278031, #1277895)
+- Fix upgrades using `-x` or `--exclude`
+
 * Tue Oct 27 2015 Will Woods <wwoods@redhat.com> 0.5.0-1
 - Fix missing console output in F21/DNF 0.6.x
 - Add `log` subcommand (to show upgrade logs)
