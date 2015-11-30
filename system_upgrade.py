@@ -32,15 +32,17 @@ import dnf
 import dnf.cli
 from dnf.cli import CliError
 
-try:
-    from dnf.i18n import translation
-except ImportError:
-    # adapted from dnf-1.1.4's dnf.i18n.translation()
-    def translation(name):
-        def ucd_wrapper(fnc):
-            return lambda *w: dnf.i18n.ucd(fnc(*w))
-        t = dnf.pycomp.gettext.translation(name, fallback=True)
-        return (ucd_wrapper(f) for f in dnf.pycomp.gettext_setup(t))
+# adapted from dnf-1.1.4's dnf.i18n.translation()
+import gettext
+def translation(name):
+    def ucd_wrapper(fnc):
+        return lambda *w: dnf.i18n.ucd(fnc(*w))
+    t = gettext.translation(name, fallback=True)
+    if dnf.pycomp.PY3:
+        _, P_ = t.gettext, t.ngettext
+    else:
+        _, P_ = t.ugettext, t.ungettext
+    return (ucd_wrapper(f) for f in (_, P_))
 
 TEXTDOMAIN = 'dnf-plugin-system-upgrade' # NOTE: must match Makefile
 _, P_ = translation(TEXTDOMAIN)
