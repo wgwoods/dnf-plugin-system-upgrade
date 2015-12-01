@@ -30,6 +30,9 @@ Conflicts: PackageKit < 1.0.6-2
 Requires: libsolv >= 0.6.14-2
 Requires: hawkey >= 0.5.3-3
 
+# If you want to upgrade to F23 you need the F23 keys
+Requires: fedora-repos >= 21-3
+
 BuildArch: noarch
 BuildRequires: pkgconfig systemd gettext
 
