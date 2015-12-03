@@ -14,21 +14,33 @@ fail() {
     exit 1
 }
 
+error() {
+    echo "ERROR: $*" | tee $RESULTFILE
+    exit 2
+}
+
 copy_logs() {
     cp -a /var/log/dnf.log $RESULTDIR/
     # FIXME: how does the journal even work in a container anyway
     #journalctl -b > $RESULTDIR/upgrade.log
 }
 
-# Parse commandline variables
-RPM_NAME="$1"
-TARGET_RELEASEVER="$2"
+# Grab $releasever and set TARGET_RELEASEVER if not already set
+RELEASEVER=$(source /etc/os-release; echo $VERSION_ID)
+[ -n "$TARGET_RELEASEVER" ] || TARGET_RELEASEVER=$(($RELEASEVER+1))
+
+# Check for required environment variables
+[ -n "$RPM_NAME" ] || error "RPM_NAME not set"
+[ -n "$TARGET_RELEASEVER" ] || error "TARGET_RELEASEVER not set"
+
+# okay, we're ready to begin
+echo "=== $RPM_NAME: test upgrade to F$TARGET_RELEASEVER"
 
 runcmd find /rpms -name "*.rpm" | grep -q "$RPM_NAME" || \
     fail "$RPM_NAME not found in container"
 
-# Install the plugin
-runcmd dnf -y --nogpgcheck install "$RPM_NAME" || \
+# Install the plugin. Note optional INSTALL_ARGS env variable here.
+runcmd dnf -y --nogpgcheck $INSTALL_ARGS install "$RPM_NAME" || \
     fail "could not install $RPM_NAME"
 
 # Download packages for upgrade
