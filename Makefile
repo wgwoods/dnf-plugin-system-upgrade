@@ -144,12 +144,15 @@ docker-snapshot-rpmbuild: docker-rpmbuild-image $(SNAP_RPM_GENFILES)
 		$(RPMBUILD_IMAGE) || { docker rm $(RPMBUILD_CONTAINER); false; }
 
 docker-snapshot-runtest: docker-snapshot-rpmbuild docker-testenv-image $(SNAP_TESTDIR)
-	docker run --rm \
+	docker run --rm --tty \
 		--volumes-from $(RPMBUILD_CONTAINER) \
 		--volume $$(pwd)/docker/testenv:/testenv:ro,z \
 		--volume $$(pwd)/$(SNAP_TESTDIR):/results:z \
+		--env RPM_NAME=$(SNAP_RPM_NAME) \
+		--env TARGET_RELEASEVER=$(TARGET_RELEASEVER) \
+		--env INSTALL_ARGS=$(INSTALL_ARGS) \
 		$(TESTENV_IMAGE) \
-		/testenv/runtest.sh $(SNAP_RPM_NAME) $(TARGET_RELEASEVER)
+		/testenv/runtest.sh
 
 .PHONY: build install clean check archive version-check
 .PHONY: install-plugin install-service install-bin install-lang install-man
