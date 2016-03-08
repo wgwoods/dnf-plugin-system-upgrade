@@ -25,6 +25,19 @@ copy_logs() {
     #journalctl -b > $RESULTDIR/upgrade.log
 }
 
+check_cache() {
+    local datadir=${1:-/var/lib/dnf/system-upgrade}
+    local numpkgs=$(find "$datadir" -name "*.rpm" | wc -l)
+    local pkgsize=$(du -sh "$datadir" | cut -f1)
+    if [ "$numpkgs" == 0 ]; then
+        echo "cache status: $datadir: empty"
+        return 1
+    else
+        echo "cache status: $datadir: $numpkgs pkgs, $pkgsize"
+        return 0
+    fi
+}
+
 # Grab $releasever and set TARGET_RELEASEVER if not already set
 RELEASEVER=$(source /etc/os-release; echo $VERSION_ID)
 [ -n "$TARGET_RELEASEVER" ] || TARGET_RELEASEVER=$(($RELEASEVER+1))
@@ -43,9 +56,19 @@ runcmd find /rpms -name "*.rpm" | grep -q "$RPM_NAME" || \
 runcmd dnf -y --nogpgcheck $INSTALL_ARGS install "$RPM_NAME" || \
     fail "could not install $RPM_NAME"
 
+# Install a random package so we can test removing it later
+runcmd dnf -y install tmux || fail "could not install tmux"
+
 # Download packages for upgrade
 runcmd dnf -y system-upgrade download --releasever=$TARGET_RELEASEVER || \
     fail "download returned $?"
+
+# Check cache behavior
+check_cache || fail "package cache is empty"
+runcmd dnf -y erase tmux || fail "could not remove tmux"
+check_cache || fail "erasing package removed upgrade cache"
+runcmd dnf -y install tmux || fail "could not install tmux"
+check_cache || fail "installing package removed upgrade cache"
 
 # Prepare system for upgrade
 runcmd dnf -y system-upgrade reboot --no-reboot || \

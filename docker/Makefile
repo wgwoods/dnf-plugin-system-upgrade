@@ -53,12 +53,15 @@ testenv/Dockerfile.f%: testenv/Dockerfile
 	sed -e 's/^FROM fedora.*/FROM fedora:$*/' $< > $@ || { rm -f $@; false; }
 
 docker-rpmbuild-image: $(RPMBUILD_DOCKERFILE)
+	@echo making RPM buildenv for F$(SOURCE_RELEASEVER)
 	docker build -f $(RPMBUILD_DOCKERFILE) -t $(RPMBUILD_IMAGE) rpmbuild
 
 docker-testenv-image: $(TESTENV_DOCKERFILE)
+	@echo making testenv for F$(SOURCE_RELEASEVER)
 	docker build -f $(TESTENV_DOCKERFILE) -t $(TESTENV_IMAGE) testenv
 
 docker-snapshot-rpmbuild: docker-rpmbuild-image $(SNAP_RPM_GENFILES)
+	@echo making $(SNAP_RPM_NAME)
 	docker ps -a | grep -qw $(RPMBUILD_CONTAINER) || \
 	docker run --name $(RPMBUILD_CONTAINER) \
 		--volume $$(pwd)/$(SNAP_BUILDDIR):/src:ro,z \
