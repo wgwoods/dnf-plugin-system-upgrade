@@ -361,6 +361,9 @@ def make_parser(prog):
     # hidden option for `reboot` testing
     p.add_argument('--no-reboot', dest='reboot', default=True,
                    action='store_false', help=argparse.SUPPRESS)
+    # hidden option to skip the kernel package check
+    p.add_argument('--no-kernel', dest='needkernel', default=True,
+                   action='store_false', help=argparse.SUPPRESS)
     return p
 
 # --- The actual Plugin and Command objects! ----------------------------------
@@ -613,8 +616,8 @@ class SystemUpgradeCommand(dnf.cli.Command):
 
     def transaction_download(self):
         # sanity check: we got a kernel, right?
-        downloads = self.cli.base.transaction.install_set
-        if not any(p.name.startswith('kernel') for p in downloads):
+        pkgs = self.cli.base.transaction.install_set
+        if self.opts.needkernel and not any(p.name.startswith('kernel') for p in pkgs):
             raise CliError(NO_KERNEL_MSG)
         # Okay! Write out the state so the upgrade can use it.
         system_ver = dnf.rpm.detect_releasever(self.base.conf.installroot)

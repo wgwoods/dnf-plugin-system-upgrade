@@ -237,6 +237,12 @@ class ArgparseTestCase(unittest.TestCase):
                         '--logtraceback'):
             self.cmd.parse_args(["download", bad_arg])
 
+    def test_no_kernel(self):
+        self.cmd.opts = self.cmd.parse_args(["download"])
+        self.assertTrue(self.cmd.opts.needkernel)
+        self.cmd.opts = self.cmd.parse_args(["download", "--no-kernel"])
+        self.assertFalse(self.cmd.opts.needkernel)
+
     def test_removed_opts(self):
         for bad_arg in ('--expire-cache',
                         '--clean-metadata',
@@ -482,10 +488,8 @@ class DownloadCommandTestCase(CommandTestCase):
             self.assertEqual(repo.pkgdir, self.command.opts.datadir)
 
     def test_transaction_download(self):
-        pkg = mock.MagicMock()
-        pkg.name = "kernel"
-        self.cli.base.transaction.install_set = [pkg]
         self.command.opts = mock.MagicMock()
+        self.command.opts.needkernel = False
         self.command.opts.distro_sync = "distro_sync"
         self.cli.demands.allow_erasing = "allow_erasing"
         self.command.base.conf.best = "best"
@@ -500,6 +504,8 @@ class DownloadCommandTestCase(CommandTestCase):
 
     def test_transaction_download_no_kernel(self):
         self.cli.base.transaction.install_set = []
+        self.command.opts = mock.MagicMock()
+        self.command.opts.needkernel = True
         with self.assertRaises(CliError):
             self.command.transaction_download()
 
